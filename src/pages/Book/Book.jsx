@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import useDataFetching from "../../hooks/useDataFetching";
 import Controls from "../controlpanel/Controls";
+import Pagination from "../../components/Pagination"; 
 
 const Book = () => {
    const { data: book } = useDataFetching({
@@ -14,13 +15,18 @@ const Book = () => {
    }));
    console.log(bookData);
 
-   const [leftPageIndex, setLeftPageIndex] = useState(0);
-   const [rightPageIndex, setRightPageIndex] = useState(1);
-   const [canGoToNextPage, setCanGoToNextPage] = useState(true);
+   const [currentPage, setCurrentPage] = useState(0);
+   const totalPages = bookData ? Math.ceil(bookData.length / 2) : 0;
 
+   const handlePageChange = (newPage) => {
+      setCurrentPage(newPage);
+   };
 
    const leftContainerRef = useRef(null);
    const rightContainerRef = useRef(null);
+
+   const leftPageIndex = currentPage * 2;
+   const rightPageIndex = leftPageIndex + 1;
 
    return (
       <div className="h-screen grid grid-rows-12 md:grid-rows-12">
@@ -28,14 +34,14 @@ const Book = () => {
          <div className="row-span-9 md:row-span-10 bg-gray-200">
             <div className="h-full flex items-center justify-center">
                <div className="flex-1 pb-4 flex justify-center">
-                  {bookData && leftPageIndex >= 0 && leftPageIndex < bookData.length && (
+                  {bookData && leftPageIndex < bookData.length && (
                      <div
                         className="bg-white p-4 shadow-md rounded-lg w-[600px] h-[790px] overflow-auto"
                         ref={leftContainerRef}
                         dangerouslySetInnerHTML={{ __html: bookData[leftPageIndex].content }}
                      />
                   )}
-                  {bookData && canGoToNextPage && (
+                  {bookData && rightPageIndex < bookData.length && (
                      <div
                         className="bg-white p-4 shadow-md rounded-lg w-[595px] h-[790px] overflow-auto"
                         ref={rightContainerRef}
@@ -46,14 +52,18 @@ const Book = () => {
             </div>
          </div>
 
-         {/* 1 row for pagination and it will stay same */}
-         <div className="row-span-1 bg-blue-200">
+         {/* 1 row for pagination */}
+         <div className="row-span-1">
             <div className="h-full flex items-center justify-center">
-               <p className="text-lg">Second Section (1 row)</p>
+               <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+               />
             </div>
          </div>
 
-         {/*it will take 2 row and 1 row depending on the device sizes*/}
+         {/* Controls section */}
          <div className="row-span-2 md:row-span-1 bg-[#FFDFCD]">
             <div className="h-full flex items-center justify-center">
                <Controls />
