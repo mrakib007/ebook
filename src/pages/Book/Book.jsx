@@ -8,15 +8,16 @@ const Book = () => {
       endPoint: "/mastering-clean-code-a-comprehensive-guide",
    });
 
+   const bookData = book?.ebookPages?.data.map((page) => ({
+      id: page?.id,
+      content: page?.htmlcontent,
+   }));
+   console.log(bookData);
    // Assuming `leftPageIndex` and `rightPageIndex` are controlled via state
    const [leftPageIndex, setLeftPageIndex] = useState(0);
    const [rightPageIndex, setRightPageIndex] = useState(1);
    const [canGoToNextPage, setCanGoToNextPage] = useState(true);
 
-   const bookData = book?.ebookPages?.data.map((page) => ({
-      id: page?.id,
-      content: page?.htmlcontent,
-   }));
 
    // Refs for page containers
    const leftContainerRef = useRef(null);
