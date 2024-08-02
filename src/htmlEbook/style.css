@@ -1,0 +1,41 @@
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+  }
+  
+  .book-container {
+    display: flex;
+    width: 1200px;
+    height: 800px;
+    background-color: #fff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .page {
+    width: 50%;
+    padding: 20px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+  }
+  
+  .page:nth-child(1) {
+    border-right: none;
+  }
+  
+  .page h2, .page p {
+    margin: 0 0 10px;
+  }
+  
+  .page ul, .page ol {
+    margin: 0 0 10px 20px;
+  }
+  
+  .page li {
+    margin: 5px 0;
+  }
+  
