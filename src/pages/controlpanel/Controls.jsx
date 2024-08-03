@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import Button from "../../components/Button";
+import Accessibility from "../../components/Accessibiity";
 
-const Controls = ({ toggleReading, isReading }) => {
+const Controls = ({ toggleReading, isReading, goToPreviousPage }) => {
    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
    useEffect(() => {
@@ -18,6 +19,7 @@ const Controls = ({ toggleReading, isReading }) => {
    return (
       <div className="bg-[#FFDFCD] p-1">
          <div className="flex flex-wrap justify-center items-center gap-2 md:gap-4">
+            <Accessibility isMobile={isMobile}/>
             <Button
                icon="ion:camera-sharp"
                text="Screenshot"
@@ -37,6 +39,7 @@ const Controls = ({ toggleReading, isReading }) => {
             <Button
                icon="ooui:arrow-previous-ltr"
                text="Previous"
+               onClick={goToPreviousPage}
                isMobile={isMobile}
             />
             <Button

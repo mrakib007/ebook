@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import useDataFetching from "../../hooks/useDataFetching";
 import Controls from "../controlpanel/Controls";
 import Pagination from "../../components/Pagination";
@@ -19,7 +19,8 @@ const Book = () => {
 
    const [currentPage, setCurrentPage] = useState(0);
    const [isReading, setIsReading] = useState(false);
-   //   const [isSinglePageView, setIsSinglePageView] = useState(window.innerWidth < 764);
+   const [pageHistory, setPageHistory] = useState([]); // Track page history
+
    const totalPages = bookData
       ? Math.ceil(bookData.length / (isSinglePageView ? 1 : 2))
       : 0;
@@ -43,8 +44,17 @@ const Book = () => {
    };
 
    const handlePageChange = (newPage) => {
+      setPageHistory([...pageHistory, currentPage]);
       setCurrentPage(newPage);
-      stopReading(); // this will stop reading when page is changed
+      stopReading();
+   };
+
+   const goToPreviousPage = () => {
+      if (pageHistory.length > 0) {
+         const lastPage = pageHistory.pop();
+         setCurrentPage(lastPage);
+         setPageHistory(pageHistory);
+      }
    };
 
    const startReading = () => {
@@ -126,7 +136,11 @@ const Book = () => {
             </div>
             {/* Controls */}
             <div className="w-full bg-[#FFDFCD]">
-               <Controls toggleReading={toggleReading} isReading={isReading} />
+               <Controls
+                  toggleReading={toggleReading}
+                  isReading={isReading}
+                  goToPreviousPage={goToPreviousPage}
+               />
             </div>
          </div>
       </div>
