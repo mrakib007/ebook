@@ -57,6 +57,14 @@ const Book = () => {
       utterance.rate = 1;
       utterance.pitch = 1;
 
+      // utterance.onstart = () => {
+      //   setHighlightedIndex(index);
+      // };
+
+      // utterance.onend = () => {
+      //   setHighlightedIndex(null);
+      // };
+
       window.speechSynthesis.speak(utterance);
     });
   };
@@ -75,10 +83,9 @@ const Book = () => {
   };
 
   return (
-    <div className="relative h-screen grid grid-rows-12">
-      {/* Main content area */}
-      <div className="row-span-10 overflow-hidden">
-        <div className="h-full flex items-start justify-center">
+    <div className="h-screen grid grid-rows-12 md:grid-rows-12">
+      <div className="row-span-9 md:row-span-10 bg-gray-200">
+        <div className="h-full flex items-center justify-center">
           <div className="flex-1 pb-4 flex justify-center">
             {bookData && leftPageIndex < bookData.length && (
               <div
@@ -98,14 +105,14 @@ const Book = () => {
         </div>
       </div>
 
-      {/* Container for Pagination and Controls */}
-      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center">
-        {/* Pagination */}
-        <div className="w-full">
+      <div className="row-span-1">
+        <div className="h-full flex items-center justify-center">
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
         </div>
-        {/* Controls */}
-        <div className="w-full bg-[#FFDFCD]">
+      </div>
+
+      <div className="row-span-2 md:row-span-1 bg-[#FFDFCD]">
+        <div className="h-full flex items-center justify-center">
           <Controls toggleReading={toggleReading} isReading={isReading}/>
         </div>
       </div>
