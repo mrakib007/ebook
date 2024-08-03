@@ -3,6 +3,7 @@ import useDataFetching from "../../hooks/useDataFetching";
 import Controls from "../controlpanel/Controls";
 import Pagination from "../../components/Pagination";
 import useResize from "../../hooks/useResize";
+import { takeScreenshot } from "../../utility/screenshotUtil"; // Import the screenshot utility
 
 const Book = () => {
    const { data: book } = useDataFetching({
@@ -85,8 +86,12 @@ const Book = () => {
       }
    };
 
+   const handleScreenshot = () => {
+      takeScreenshot(".book-container", "book-screenshot");
+   };
+
    return (
-      <div className="relative h-screen grid grid-rows-12">
+      <div className="relative h-screen grid grid-rows-12 book-container">
          {/* Main content area */}
          <div className="row-span-10 overflow-hidden">
             <div className="h-full flex items-start justify-center">
@@ -140,6 +145,7 @@ const Book = () => {
                   toggleReading={toggleReading}
                   isReading={isReading}
                   goToPreviousPage={goToPreviousPage}
+                  handleScreenshot={handleScreenshot} // Pass the screenshot handler
                />
             </div>
          </div>
