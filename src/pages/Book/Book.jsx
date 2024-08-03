@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import useDataFetching from "../../hooks/useDataFetching";
 import Controls from "../controlpanel/Controls";
 import Pagination from "../../components/Pagination";
 import useResize from "../../hooks/useResize";
 import { takeScreenshot } from "../../utility/screenshotUtil"; // Import the screenshot utility
+import { injectCSS } from "../../utility/injectCss";
 
 const Book = () => {
    const { data: book } = useDataFetching({
@@ -16,7 +17,18 @@ const Book = () => {
    const bookData = book?.ebookPages?.data.map((page) => ({
       id: page?.id,
       content: page?.htmlcontent,
+      csscontent: page?.csscontent,
+      inlinecss: page?.inlinehtmlcss,
    }));
+
+   useEffect(() => {
+      const cleanup = injectCSS(bookData);
+
+      // Clean up the CSS when the component unmounts
+      return () => {
+         if (cleanup) cleanup();
+      };
+   }, [bookData]);
 
    const [currentPage, setCurrentPage] = useState(0);
    const [isReading, setIsReading] = useState(false);
@@ -119,7 +131,7 @@ const Book = () => {
                      bookData &&
                      pageIndex + 1 < bookData.length && (
                         <div
-                           className="bg-white p-4 shadow-md rounded-lg w-[595px] h-[790px] overflow-auto"
+                           className="bg-white p-4 shadow-md rounded-lg w-[600px] h-[790px] overflow-auto"
                            dangerouslySetInnerHTML={{
                               __html: bookData[pageIndex + 1].content,
                            }}
