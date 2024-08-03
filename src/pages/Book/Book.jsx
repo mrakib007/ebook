@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import useDataFetching from '../../hooks/useDataFetching';
 import Controls from '../controlpanel/Controls';
 import Pagination from '../../components/Pagination';
@@ -13,9 +13,9 @@ const Book = () => {
     id: page?.id,
     content: page?.htmlcontent,
   }));
-  console.log(bookData);
 
   const [currentPage, setCurrentPage] = useState(0);
+  const [isReading, setIsReading] = useState(false);
   const totalPages = bookData ? Math.ceil(bookData.length / 2) : 0;
 
   const leftContainerRef = useRef(null);
@@ -41,7 +41,8 @@ const Book = () => {
     stopReading(); // this will stop reading when page is changed
   };
 
-  const readAloud = () => {
+  const startReading = () => {
+    setIsReading(true);
     const leftPageText = leftContainerRef.current
       ? extractAndLogText(leftContainerRef.current.innerHTML)
       : [];
@@ -51,21 +52,38 @@ const Book = () => {
 
     const linesToRead = [...leftPageText, ...rightPageText];
 
-    linesToRead.forEach((line) => {
+    linesToRead.forEach((line, index) => {
       const utterance = new SpeechSynthesisUtterance(line.trim());
-      utterance.rate = 1; 
-      utterance.pitch = 1; 
+      utterance.rate = 1;
+      utterance.pitch = 1;
+
+      // utterance.onstart = () => {
+      //   setHighlightedIndex(index);
+      // };
+
+      // utterance.onend = () => {
+      //   setHighlightedIndex(null);
+      // };
+
       window.speechSynthesis.speak(utterance);
     });
   };
 
   const stopReading = () => {
     window.speechSynthesis.cancel();
+    setIsReading(false);
+  };
+
+  const toggleReading = () => {
+    if (isReading) {
+      stopReading();
+    } else {
+      startReading();
+    }
   };
 
   return (
     <div className="h-screen grid grid-rows-12 md:grid-rows-12">
-      {/* 10 rows for big devices, 9 rows for md and lower devices */}
       <div className="row-span-9 md:row-span-10 bg-gray-200">
         <div className="h-full flex items-center justify-center">
           <div className="flex-1 pb-4 flex justify-center">
@@ -87,29 +105,15 @@ const Book = () => {
         </div>
       </div>
 
-      {/* 1 row for pagination */}
       <div className="row-span-1">
         <div className="h-full flex items-center justify-center">
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
         </div>
       </div>
 
-      {/* Controls section */}
       <div className="row-span-2 md:row-span-1 bg-[#FFDFCD]">
         <div className="h-full flex items-center justify-center">
-          <Controls />
-          <button
-            onClick={readAloud}
-            className="ml-4 bg-blue-500 text-white py-2 px-4 rounded"
-          >
-            Read Aloud
-          </button>
-          <button
-            onClick={stopReading}
-            className="ml-4 bg-red-500 text-white py-2 px-4 rounded"
-          >
-            Stop Reading
-          </button>
+          <Controls toggleReading={toggleReading} isReading={isReading}/>
         </div>
       </div>
     </div>

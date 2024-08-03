@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Button from "../../components/Button";
 
-const Controls = () => {
+const Controls = ({ toggleReading, isReading }) => {
    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
    useEffect(() => {
@@ -39,7 +39,16 @@ const Controls = () => {
                text="Previous"
                isMobile={isMobile}
             />
-            <Button icon="mdi:volume-high" text="Listen" isMobile={isMobile} />
+            <Button
+               icon={
+                  isReading
+                     ? "material-symbols-light:volume-off"
+                     : "mdi:volume-high"
+               }
+               onClick={toggleReading}
+               text={isReading ? "Stop" : "Listen"}
+               isMobile={isMobile}
+            />
             <Button icon="ph:file-pdf" text="PDF" isMobile={isMobile} />
             <Button icon="mdi:reload" text="Reload" isMobile={isMobile} />
             <Button
