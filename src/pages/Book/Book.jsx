@@ -1,13 +1,16 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import useDataFetching from "../../hooks/useDataFetching";
 import Controls from "../controlpanel/Controls";
 import Pagination from "../../components/Pagination";
+import useResize from "../../hooks/useResize";
 
 const Book = () => {
    const { data: book } = useDataFetching({
       queryKey: "books",
       endPoint: "/mastering-clean-code-a-comprehensive-guide",
    });
+
+   const { isSinglePageView, scale, scaleY } = useResize();
 
    const bookData = book?.ebookPages?.data.map((page) => ({
       id: page?.id,
@@ -16,13 +19,14 @@ const Book = () => {
 
    const [currentPage, setCurrentPage] = useState(0);
    const [isReading, setIsReading] = useState(false);
-   const totalPages = bookData ? Math.ceil(bookData.length / 2) : 0;
+   //   const [isSinglePageView, setIsSinglePageView] = useState(window.innerWidth < 764);
+   const totalPages = bookData
+      ? Math.ceil(bookData.length / (isSinglePageView ? 1 : 2))
+      : 0;
 
-   const leftContainerRef = useRef(null);
-   const rightContainerRef = useRef(null);
+   const containerRef = useRef(null);
 
-   const leftPageIndex = currentPage * 2;
-   const rightPageIndex = leftPageIndex + 1;
+   const pageIndex = currentPage * (isSinglePageView ? 1 : 2);
 
    const extractAndLogText = (htmlString) => {
       const formattedHtml = htmlString
@@ -45,16 +49,11 @@ const Book = () => {
 
    const startReading = () => {
       setIsReading(true);
-      const leftPageText = leftContainerRef.current
-         ? extractAndLogText(leftContainerRef.current.innerHTML)
-         : [];
-      const rightPageText = rightContainerRef.current
-         ? extractAndLogText(rightContainerRef.current.innerHTML)
+      const pageText = containerRef.current
+         ? extractAndLogText(containerRef.current.innerHTML)
          : [];
 
-      const linesToRead = [...leftPageText, ...rightPageText];
-
-      linesToRead.forEach((line, index) => {
+      pageText.forEach((line) => {
          const utterance = new SpeechSynthesisUtterance(line.trim());
          utterance.rate = 1;
          utterance.pitch = 1;
@@ -81,25 +80,36 @@ const Book = () => {
          {/* Main content area */}
          <div className="row-span-10 overflow-hidden">
             <div className="h-full flex items-start justify-center">
-               <div className="flex-1 pb-4 flex justify-center">
-                  {bookData && leftPageIndex < bookData.length && (
+               <div
+                  className="flex-1 pb-4 flex justify-center"
+                  style={{
+                     minWidth: isSinglePageView ? "764px" : "1400px",
+                     transform: `scaleX(${scale}) scaleY(${scaleY})`,
+                  }}
+               >
+                  {bookData && pageIndex < bookData.length && (
                      <div
-                        className="bg-white p-4 shadow-md rounded-lg w-[600px] h-[790px] overflow-auto"
-                        ref={leftContainerRef}
+                        className={`bg-white p-4 shadow-md rounded-lg overflow-auto ${
+                           isSinglePageView
+                              ? "w-full h-[790px]"
+                              : "w-[600px] h-[790px]"
+                        }`}
+                        ref={containerRef}
                         dangerouslySetInnerHTML={{
-                           __html: bookData[leftPageIndex].content,
+                           __html: bookData[pageIndex].content,
                         }}
                      />
                   )}
-                  {bookData && rightPageIndex < bookData.length && (
-                     <div
-                        className="bg-white p-4 shadow-md rounded-lg w-[595px] h-[790px] overflow-auto"
-                        ref={rightContainerRef}
-                        dangerouslySetInnerHTML={{
-                           __html: bookData[rightPageIndex].content,
-                        }}
-                     />
-                  )}
+                  {!isSinglePageView &&
+                     bookData &&
+                     pageIndex + 1 < bookData.length && (
+                        <div
+                           className="bg-white p-4 shadow-md rounded-lg w-[595px] h-[790px] overflow-auto"
+                           dangerouslySetInnerHTML={{
+                              __html: bookData[pageIndex + 1].content,
+                           }}
+                        />
+                     )}
                </div>
             </div>
          </div>
