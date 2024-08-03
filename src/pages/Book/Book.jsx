@@ -24,16 +24,6 @@ const Book = () => {
   const leftPageIndex = currentPage * 2;
   const rightPageIndex = leftPageIndex + 1;
 
-  useEffect(() => {
-    if (bookData) {
-      bookData.forEach((page) => {
-        console.log(`line: ${page.id}`);
-        extractAndLogText(page.content);
-        console.log('\n');
-      });
-    }
-  }, [bookData]);
-
   const extractAndLogText = (htmlString) => {
     const formattedHtml = htmlString
       .replace(/<\/(div|p|li|ul|ol|h1|h2|h3|h4|h5|h6)>/g, '</$1>\n')
@@ -48,6 +38,7 @@ const Book = () => {
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
+    stopReading(); // this will stop reading when page is changed
   };
 
   const readAloud = () => {
@@ -62,8 +53,8 @@ const Book = () => {
 
     linesToRead.forEach((line) => {
       const utterance = new SpeechSynthesisUtterance(line.trim());
-      utterance.rate = 1; // Adjust the speech rate as needed
-      utterance.pitch = 1; // Adjust the pitch as needed
+      utterance.rate = 1; 
+      utterance.pitch = 1; 
       window.speechSynthesis.speak(utterance);
     });
   };
