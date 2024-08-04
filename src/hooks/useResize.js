@@ -4,7 +4,7 @@ const useResize = () => {
   const [isSinglePageView, setIsSinglePageView] = useState(window.innerWidth < 768);
   const [scale, setScale] = useState(1);
   const [scaleY, setScaleY] = useState(1);
-
+  const [zoomCount, setZoomCount] = useState(0);
   useEffect(() => {
     const handleResize = () => {
       const w = window.innerWidth;
@@ -30,7 +30,25 @@ const useResize = () => {
     };
   }, []);
 
-  return { isSinglePageView, scale, scaleY };
+  const handleZoomIn = () => {
+    if (zoomCount < 2) {
+      setScale((prevScale) => prevScale + 0.1);
+      setZoomCount((prevCount) => prevCount + 1);
+    }
+  };
+  const handleZoomOut = () => {
+    if (zoomCount > -2) {
+      setScale((prevScale) => Math.max(prevScale - 0.1, 0.1));
+      setZoomCount((prevCount) => prevCount - 1);
+    }
+  };
+
+  const handleReload = () => {
+    setZoomCount(0);
+    setScale(1);
+  };
+
+  return { isSinglePageView, scale, scaleY, handleZoomIn, handleZoomOut, handleReload, zoomCount };
 };
 
 export default useResize;

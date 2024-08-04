@@ -5,6 +5,7 @@ import Pagination from "../../components/Pagination";
 import useResize from "../../hooks/useResize";
 import { takeScreenshot } from "../../utility/screenshotUtil"; // Import the screenshot utility
 import { injectCSS } from "../../utility/injectCss";
+import useNotes from "../../hooks/useNotes";
 
 const Book = () => {
    const { data: book } = useDataFetching({
@@ -12,7 +13,32 @@ const Book = () => {
       endPoint: "/mastering-clean-code-a-comprehensive-guide",
    });
 
-   const { isSinglePageView, scale, scaleY } = useResize();
+   const {
+      isSinglePageView,
+      scale,
+      scaleY,
+      handleZoomIn,
+      handleZoomOut,
+      handleReload,
+      zoomCount,
+   } = useResize();
+
+   const {
+      isNoteControlsVisible,
+      setIsNoteControlsVisible,
+      isDrawing,
+      setIsDrawing,
+      canvasRef,
+      startDrawing,
+      draw,
+      endDrawing,
+      toggleDrawingMode,
+      undo,
+      enableDrawing,
+      disableDrawing,
+      handleColorChange,
+      color,
+   } = useNotes();
 
    const bookData = book?.ebookPages?.data.map((page) => ({
       id: page?.id,
@@ -32,13 +58,15 @@ const Book = () => {
 
    const [currentPage, setCurrentPage] = useState(0);
    const [isReading, setIsReading] = useState(false);
-   const [pageHistory, setPageHistory] = useState([]); // Track page history
+   const [pageHistory, setPageHistory] = useState([]);
+   const [isCanvas, setIsCanvas] = useState(false);
 
    const totalPages = bookData
       ? Math.ceil(bookData.length / (isSinglePageView ? 1 : 2))
       : 0;
 
-   const containerRef = useRef(null);
+   const leftPageRef = useRef(null);
+   const rightPageRef = useRef(null);
 
    const pageIndex = currentPage * (isSinglePageView ? 1 : 2);
 
@@ -72,11 +100,17 @@ const Book = () => {
 
    const startReading = () => {
       setIsReading(true);
-      const pageText = containerRef.current
-         ? extractAndLogText(containerRef.current.innerHTML)
-         : [];
 
-      pageText.forEach((line) => {
+      // Extract and concatenate text from both pages if available
+      const leftPageText = leftPageRef.current
+         ? extractAndLogText(leftPageRef.current.innerHTML)
+         : [];
+      const rightPageText = rightPageRef.current
+         ? extractAndLogText(rightPageRef.current.innerHTML)
+         : [];
+      const combinedText = [...leftPageText, ...rightPageText];
+
+      combinedText.forEach((line) => {
          const utterance = new SpeechSynthesisUtterance(line.trim());
          utterance.rate = 1;
          utterance.pitch = 1;
@@ -106,7 +140,17 @@ const Book = () => {
       <div className="relative h-screen grid grid-rows-12 book-container">
          {/* Main content area */}
          <div className="row-span-10 overflow-hidden">
-            <div className="h-full flex items-start justify-center">
+            <div
+               className="h-full flex items-start justify-center"
+               style={
+                  zoomCount !== 0
+                     ? {
+                          transform: `scale(${scale})`,
+                          transformOrigin: "center center",
+                       }
+                     : {}
+               }
+            >
                <div
                   className="flex-1 pb-4 flex justify-center"
                   style={{
@@ -114,6 +158,13 @@ const Book = () => {
                      transform: `scaleX(${scale}) scaleY(${scaleY})`,
                   }}
                >
+                 {isCanvas ? <canvas
+                     ref={canvasRef}
+                     className="absolute inset-0 z-10 w-[100%] h-[100%]"
+                     onMouseDown={startDrawing}
+                     onMouseMove={draw}
+                     onMouseUp={endDrawing}
+                  /> : null}
                   {bookData && pageIndex < bookData.length && (
                      <div
                         className={`bg-white p-4 shadow-md rounded-lg overflow-auto ${
@@ -121,7 +172,7 @@ const Book = () => {
                               ? "w-full h-[790px]"
                               : "w-[600px] h-[790px]"
                         }`}
-                        ref={containerRef}
+                        ref={leftPageRef}
                         dangerouslySetInnerHTML={{
                            __html: bookData[pageIndex].content,
                         }}
@@ -132,6 +183,7 @@ const Book = () => {
                      pageIndex + 1 < bookData.length && (
                         <div
                            className="bg-white p-4 shadow-md rounded-lg w-[600px] h-[790px] overflow-auto"
+                           ref={rightPageRef}
                            dangerouslySetInnerHTML={{
                               __html: bookData[pageIndex + 1].content,
                            }}
@@ -157,7 +209,26 @@ const Book = () => {
                   toggleReading={toggleReading}
                   isReading={isReading}
                   goToPreviousPage={goToPreviousPage}
-                  handleScreenshot={handleScreenshot} // Pass the screenshot handler
+                  handleScreenshot={handleScreenshot}
+                  handleZoomIn={handleZoomIn}
+                  handleZoomOut={handleZoomOut}
+                  handleReload={handleReload}
+                  isNoteControlsVisible={isNoteControlsVisible}
+                  setIsNoteControlsVisible={setIsNoteControlsVisible}
+                  isDrawing={isDrawing}
+                  setIsDrawing={setIsDrawing}
+                  canvasRef={canvasRef}
+                  startDrawing={startDrawing}
+                  draw={draw}
+                  endDrawing={endDrawing}
+                  toggleDrawingMode={toggleDrawingMode}
+                  undo={undo}
+                  enableDrawing={enableDrawing}
+                  disableDrawing={disableDrawing}
+                  handleColorChange={handleColorChange}
+                  color={color}
+                  isCanvas={isCanvas}
+                  setIsCanvas={setIsCanvas}
                />
             </div>
          </div>
