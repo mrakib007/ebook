@@ -6,6 +6,7 @@ import useResize from "../../hooks/useResize";
 import { takeScreenshot, toggleFullscreen } from "../../utility/screenshotUtil";
 import { injectCSS } from "../../utility/injectCss";
 import useNotes from "../../hooks/useNotes";
+import PageNavigation from "../../components/PageNavigation";
 
 const Book = () => {
    const { data: book } = useDataFetching({
@@ -197,6 +198,18 @@ const Book = () => {
       };
    }, [isDragging]);
 
+   const handlePrevClick = () => {
+      if (currentPage > 0) {
+         handlePageChange(currentPage - 1);
+      }
+   };
+
+   const handleNextClick = () => {
+      if (currentPage < totalPages - 1) {
+         handlePageChange(currentPage + 1);
+      }
+   };
+
    return (
       <div className="relative h-screen grid grid-rows-12 book-container">
          <div className="row-span-10 overflow-hidden">
@@ -223,7 +236,6 @@ const Book = () => {
                      transform: `scaleX(${scale}) scaleY(${scaleY})`,
                   }}
                >
-                  {/* {isCanvas ? ( */}
                   <canvas
                      ref={canvasRef}
                      className="absolute inset-0 z-10 w-[100%] h-[100%]"
@@ -231,7 +243,6 @@ const Book = () => {
                      onMouseMove={draw}
                      onMouseUp={endDrawing}
                   />
-                  {/* ) : null} */}
                   {bookData && pageIndex < bookData.length && (
                      <div
                         className={`bg-white p-4 shadow-md rounded-lg overflow-auto ${
@@ -277,31 +288,36 @@ const Book = () => {
                   toggleReading={toggleReading}
                   isReading={isReading}
                   goToPreviousPage={goToPreviousPage}
+                  isSinglePageView={isSinglePageView}
+                  toggleFullscreen={handleToggleFullscreen}
+                  isFullscreen={isFullscreen}
+                  handleScreenshot={handleScreenshot}
+                  scale={scale}
+                  zoomCount={zoomCount}
                   handleZoomIn={handleZoomIn}
                   handleZoomOut={handleZoomOut}
                   handleReload={handleReload}
-                  handleScreenshot={handleScreenshot}
                   handleToggleFullscreen={handleToggleFullscreen}
-                  isFullscreen={isFullscreen}
                   isNoteControlsVisible={isNoteControlsVisible}
                   setIsNoteControlsVisible={setIsNoteControlsVisible}
-                  isDrawing={isDrawing}
-                  setIsDrawing={setIsDrawing}
                   toggleDrawingMode={toggleDrawingMode}
+                  isDrawing={isDrawing}
                   undo={undo}
-                  enableDrawing={enableDrawing}
-                  disableDrawing={disableDrawing}
-                  handleColorChange={handleColorChange}
                   color={color}
-                  canvasRef={canvasRef}
-                  startDrawing={startDrawing}
-                  draw={draw}
-                  endDrawing={endDrawing}
-                  isCanvas={isCanvas}
+                  handleColorChange={handleColorChange}
+                  disableDrawing={disableDrawing}
+                  enableDrawing={enableDrawing}
                   setIsCanvas={setIsCanvas}
                />
             </div>
          </div>
+
+         <PageNavigation
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPrevClick={handlePrevClick}
+            onNextClick={handleNextClick}
+         />
       </div>
    );
 };

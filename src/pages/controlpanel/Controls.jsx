@@ -32,6 +32,7 @@ const Controls = ({
    handleToggleFullscreen
 }) => {
    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+   const [isTablet,setIsTablet] = useState(window.innerWidth > 1100);
    const [isOpen, setIsOpen] = useState(false);
    const [isZoomControlsVisible, setIsZoomControlVisible] = useState(false);
    const [isNoteControlsVisible, setIsNoteControlVisible] = useState(false);
@@ -56,6 +57,7 @@ const Controls = ({
    useEffect(() => {
       const handleResize = () => {
          setIsMobile(window.innerWidth < 768);
+         setIsTablet(window.innerWidth > 1100);
       };
 
       window.addEventListener("resize", handleResize);
@@ -135,12 +137,12 @@ const Controls = ({
                      isZoomControlsVisible={isZoomControlsVisible}
                   />
                )}
-               <Button
+               {isTablet && <Button
                   icon="ic:round-zoom-in"
                   text="Zoom In"
                   isMobile={isMobile}
                   onClick={() => handleZoomControls()}
-               />
+               />}
             </div>
             <Button
                icon="mdi:fullscreen"
