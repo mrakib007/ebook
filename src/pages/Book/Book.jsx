@@ -6,6 +6,7 @@ import useResize from "../../hooks/useResize";
 import { takeScreenshot, toggleFullscreen } from "../../utility/screenshotUtil";
 import { injectCSS } from "../../utility/injectCss";
 import useNotes from "../../hooks/useNotes";
+import useDraggable from "../../hooks/useDraggable"; // Import the hook
 import PageNavigation from "../../components/PageNavigation";
 
 const Book = () => {
@@ -64,9 +65,8 @@ const Book = () => {
    const [isCanvas, setIsCanvas] = useState(false);
    const [isFullscreen, setIsFullscreen] = useState(false);
 
-   const [isDragging, setIsDragging] = useState(false);
-   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+   // Use the draggable hook
+   const { isDragging, dragOffset, handleMouseDown } = useDraggable(zoomCount);
 
    const totalPages = bookData
       ? Math.ceil(bookData.length / (isSinglePageView ? 1 : 2))
@@ -158,46 +158,6 @@ const Book = () => {
       };
    }, []);
 
-   const handleMouseDown = (e) => {
-      if (zoomCount > 0) {
-         setIsDragging(true);
-         setDragStart({
-            x: e.clientX - dragOffset.x,
-            y: e.clientY - dragOffset.y,
-         });
-      }
-   };
-
-   const handleMouseMove = (e) => {
-      if (isDragging) {
-         setDragOffset({
-            x: e.clientX - dragStart.x,
-            y: e.clientY - dragStart.y,
-         });
-      }
-   };
-
-   const handleMouseUp = () => {
-      if (isDragging) {
-         setIsDragging(false);
-      }
-   };
-
-   useEffect(() => {
-      if (isDragging) {
-         window.addEventListener("mousemove", handleMouseMove);
-         window.addEventListener("mouseup", handleMouseUp);
-      } else {
-         window.removeEventListener("mousemove", handleMouseMove);
-         window.removeEventListener("mouseup", handleMouseUp);
-      }
-
-      return () => {
-         window.removeEventListener("mousemove", handleMouseMove);
-         window.removeEventListener("mouseup", handleMouseUp);
-      };
-   }, [isDragging]);
-
    const handlePrevClick = () => {
       if (currentPage > 0) {
          handlePageChange(currentPage - 1);
@@ -236,13 +196,15 @@ const Book = () => {
                      transform: `scaleX(${scale}) scaleY(${scaleY})`,
                   }}
                >
-                  <canvas
-                     ref={canvasRef}
-                     className="absolute inset-0 z-10 w-[100%] h-[100%]"
-                     onMouseDown={startDrawing}
-                     onMouseMove={draw}
-                     onMouseUp={endDrawing}
-                  />
+                  {/* {isCanvas ? ( */}
+                  {/* <canvas
+                        ref={canvasRef}
+                        className="absolute inset-0 z-10 w-[100%] h-[100%]"
+                        onMouseDown={startDrawing}
+                        onMouseMove={draw}
+                        onMouseUp={endDrawing}
+                     /> */}
+                  {/* ) : null} */}
                   {bookData && pageIndex < bookData.length && (
                      <div
                         className={`bg-white p-4 shadow-md rounded-lg overflow-auto ${
@@ -303,15 +265,13 @@ const Book = () => {
                   toggleDrawingMode={toggleDrawingMode}
                   isDrawing={isDrawing}
                   undo={undo}
-                  color={color}
-                  handleColorChange={handleColorChange}
-                  disableDrawing={disableDrawing}
                   enableDrawing={enableDrawing}
-                  setIsCanvas={setIsCanvas}
+                  disableDrawing={disableDrawing}
+                  handleColorChange={handleColorChange}
+                  color={color}
                />
             </div>
          </div>
-
          <PageNavigation
             currentPage={currentPage}
             totalPages={totalPages}
