@@ -66,7 +66,8 @@ const Book = () => {
    const [isFullscreen, setIsFullscreen] = useState(false);
 
    // Use the draggable hook
-   const { isDragging, dragOffset, handleMouseDown } = useDraggable(zoomCount);
+   const containerRef = useRef(null);
+   const { isDragging, dragOffset, handleMouseDown } = useDraggable(zoomCount, containerRef);
 
    const totalPages = bookData
       ? Math.ceil(bookData.length / (isSinglePageView ? 1 : 2))
@@ -171,7 +172,7 @@ const Book = () => {
    };
 
    return (
-      <div className="relative h-screen grid grid-rows-12 book-container">
+      <div ref={containerRef} className="relative h-screen grid grid-rows-12 book-container">
          <div className="row-span-10 overflow-hidden">
             <div
                className="h-full flex items-start justify-center"
