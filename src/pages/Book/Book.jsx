@@ -3,7 +3,7 @@ import useDataFetching from "../../hooks/useDataFetching";
 import Controls from "../controlpanel/Controls";
 import Pagination from "../../components/Pagination";
 import useResize from "../../hooks/useResize";
-import { takeScreenshot } from "../../utility/screenshotUtil"; // Import the screenshot utility
+import { takeScreenshot, toggleFullscreen } from "../../utility/screenshotUtil";
 import { injectCSS } from "../../utility/injectCss";
 import useNotes from "../../hooks/useNotes";
 
@@ -47,10 +47,11 @@ const Book = () => {
       inlinecss: page?.inlinehtmlcss,
    }));
 
+   console.log(bookData);
+
    useEffect(() => {
       const cleanup = injectCSS(bookData);
 
-      // Clean up the CSS when the component unmounts
       return () => {
          if (cleanup) cleanup();
       };
@@ -60,6 +61,11 @@ const Book = () => {
    const [isReading, setIsReading] = useState(false);
    const [pageHistory, setPageHistory] = useState([]);
    const [isCanvas, setIsCanvas] = useState(false);
+   const [isFullscreen, setIsFullscreen] = useState(false);
+
+   const [isDragging, setIsDragging] = useState(false);
+   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
    const totalPages = bookData
       ? Math.ceil(bookData.length / (isSinglePageView ? 1 : 2))
@@ -101,7 +107,6 @@ const Book = () => {
    const startReading = () => {
       setIsReading(true);
 
-      // Extract and concatenate text from both pages if available
       const leftPageText = leftPageRef.current
          ? extractAndLogText(leftPageRef.current.innerHTML)
          : [];
@@ -136,9 +141,64 @@ const Book = () => {
       takeScreenshot(".book-container", "book-screenshot");
    };
 
+   const handleToggleFullscreen = () => {
+      toggleFullscreen();
+      setIsFullscreen((prev) => !prev);
+   };
+
+   useEffect(() => {
+      const onFullscreenChange = () => {
+         setIsFullscreen(!!document.fullscreenElement);
+      };
+
+      document.addEventListener("fullscreenchange", onFullscreenChange);
+      return () => {
+         document.removeEventListener("fullscreenchange", onFullscreenChange);
+      };
+   }, []);
+
+   const handleMouseDown = (e) => {
+      if (zoomCount > 0) {
+         setIsDragging(true);
+         setDragStart({
+            x: e.clientX - dragOffset.x,
+            y: e.clientY - dragOffset.y,
+         });
+      }
+   };
+
+   const handleMouseMove = (e) => {
+      if (isDragging) {
+         setDragOffset({
+            x: e.clientX - dragStart.x,
+            y: e.clientY - dragStart.y,
+         });
+      }
+   };
+
+   const handleMouseUp = () => {
+      if (isDragging) {
+         setIsDragging(false);
+      }
+   };
+
+   useEffect(() => {
+      if (isDragging) {
+         window.addEventListener("mousemove", handleMouseMove);
+         window.addEventListener("mouseup", handleMouseUp);
+      } else {
+         window.removeEventListener("mousemove", handleMouseMove);
+         window.removeEventListener("mouseup", handleMouseUp);
+      }
+
+      return () => {
+         window.removeEventListener("mousemove", handleMouseMove);
+         window.removeEventListener("mouseup", handleMouseUp);
+      };
+   }, [isDragging]);
+
    return (
       <div className="relative h-screen grid grid-rows-12 book-container">
-         {/* Main content area */}
          <div className="row-span-10 overflow-hidden">
             <div
                className="h-full flex items-start justify-center"
@@ -147,9 +207,14 @@ const Book = () => {
                      ? {
                           transform: `scale(${scale})`,
                           transformOrigin: "center center",
+                          cursor: isDragging ? "grabbing" : "grab",
+                          position: "relative",
+                          left: `${dragOffset.x}px`,
+                          top: `${dragOffset.y}px`,
                        }
                      : {}
                }
+               onMouseDown={handleMouseDown}
             >
                <div
                   className="flex-1 pb-4 flex justify-center"
@@ -158,20 +223,23 @@ const Book = () => {
                      transform: `scaleX(${scale}) scaleY(${scaleY})`,
                   }}
                >
-                 {isCanvas ? <canvas
+                  {/* {isCanvas ? ( */}
+                  <canvas
                      ref={canvasRef}
                      className="absolute inset-0 z-10 w-[100%] h-[100%]"
                      onMouseDown={startDrawing}
                      onMouseMove={draw}
                      onMouseUp={endDrawing}
-                  /> : null}
+                  />
+                  {/* ) : null} */}
                   {bookData && pageIndex < bookData.length && (
                      <div
                         className={`bg-white p-4 shadow-md rounded-lg overflow-auto ${
-                           isSinglePageView
-                              ? "w-full h-[790px]"
-                              : "w-[600px] h-[790px]"
+                           isSinglePageView ? "w-full" : "w-[600px]"
                         }`}
+                        style={{
+                           height: isFullscreen ? "850px" : "790px",
+                        }}
                         ref={leftPageRef}
                         dangerouslySetInnerHTML={{
                            __html: bookData[pageIndex].content,
@@ -182,7 +250,10 @@ const Book = () => {
                      bookData &&
                      pageIndex + 1 < bookData.length && (
                         <div
-                           className="bg-white p-4 shadow-md rounded-lg w-[600px] h-[790px] overflow-auto"
+                           className="bg-white p-4 shadow-md rounded-lg w-[600px] overflow-auto"
+                           style={{
+                              height: isFullscreen ? "850px" : "790px",
+                           }}
                            ref={rightPageRef}
                            dangerouslySetInnerHTML={{
                               __html: bookData[pageIndex + 1].content,
@@ -193,9 +264,7 @@ const Book = () => {
             </div>
          </div>
 
-         {/* Container for Pagination and Controls */}
          <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center">
-            {/* Pagination */}
             <div className="w-full">
                <Pagination
                   currentPage={currentPage}
@@ -203,30 +272,31 @@ const Book = () => {
                   onPageChange={handlePageChange}
                />
             </div>
-            {/* Controls */}
             <div className="w-full bg-[#FFDFCD]">
                <Controls
                   toggleReading={toggleReading}
                   isReading={isReading}
                   goToPreviousPage={goToPreviousPage}
-                  handleScreenshot={handleScreenshot}
                   handleZoomIn={handleZoomIn}
                   handleZoomOut={handleZoomOut}
                   handleReload={handleReload}
+                  handleScreenshot={handleScreenshot}
+                  handleToggleFullscreen={handleToggleFullscreen}
+                  isFullscreen={isFullscreen}
                   isNoteControlsVisible={isNoteControlsVisible}
                   setIsNoteControlsVisible={setIsNoteControlsVisible}
                   isDrawing={isDrawing}
                   setIsDrawing={setIsDrawing}
-                  canvasRef={canvasRef}
-                  startDrawing={startDrawing}
-                  draw={draw}
-                  endDrawing={endDrawing}
                   toggleDrawingMode={toggleDrawingMode}
                   undo={undo}
                   enableDrawing={enableDrawing}
                   disableDrawing={disableDrawing}
                   handleColorChange={handleColorChange}
                   color={color}
+                  canvasRef={canvasRef}
+                  startDrawing={startDrawing}
+                  draw={draw}
+                  endDrawing={endDrawing}
                   isCanvas={isCanvas}
                   setIsCanvas={setIsCanvas}
                />

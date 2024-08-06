@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Button from "../../components/Button";
-import { toggleFullscreen } from "../../utility/screenshotUtil";
+// import { toggleFullscreen } from "../../utility/screenshotUtil";
 import Modal from "../../components/Modal";
 import ZoomControls from "../ZoomControls/ZoomControls";
 import Accessibility from "../../components/Accessibility";
@@ -29,6 +29,7 @@ const Controls = ({
    color,
    isCanvas,
    setIsCanvas,
+   handleToggleFullscreen
 }) => {
    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
    const [isOpen, setIsOpen] = useState(false);
@@ -145,7 +146,7 @@ const Controls = ({
                icon="mdi:fullscreen"
                text="Fullscreen"
                isMobile={isMobile}
-               onClick={toggleFullscreen}
+               onClick={handleToggleFullscreen}
             />
          </div>
          <Modal isOpen={isOpen} onClose={closeModal} />
